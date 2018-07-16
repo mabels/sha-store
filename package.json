@@ -31,13 +31,13 @@
   },
   "homepage": "https://github.com/mabels/sha-storage#readme",
   "devDependencies": {
-    "@types/chai": "4.0.10",
-    "@types/mocha": "2.2.45",
-    "@types/node": "^9.6.0",
+    "@types/chai": "4.1.4",
+    "@types/mocha": "5.2.5",
+    "@types/node": "^10.5.2",
     "@types/uuid": "^3.4.3",
     "@types/pouchdb": "^6.3.2",
     "chai": ">=4.1.2",
-    "mocha": "4.1.0",
+    "mocha": "5.2.0",
     "tslint": ">=5.7.0",
     "typescript": "^2.7.2"
   },
