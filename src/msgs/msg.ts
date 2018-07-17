@@ -13,7 +13,7 @@ export abstract class Msg<T = any> {
   }
 
   public asObj(): T {
-    throw new Error('Msg toJson is not implemented');
+    throw new Error('Msg asObj is not implemented');
   }
 
 }
