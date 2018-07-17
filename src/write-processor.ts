@@ -1,7 +1,9 @@
 import { MsgBus } from './msg-bus';
-import { Write } from './msgs/write';
-import { Written } from './msgs/written';
-import { FragmentWrite, FragmentType } from './msgs/fragment-write';
+import { WriteReq } from './msgs/write-req';
+import { WriteRes } from './msgs/write-res';
+import { FragmentWriteReq } from './msgs/fragment-write-req';
+import { BufferBlock } from './types/buffer-block';
+import { FragmentType } from './types/fragment-type';
 
 export class WriteProcessor {
 
@@ -13,10 +15,10 @@ export class WriteProcessor {
 
   private constructor(msgBus: MsgBus) {
     msgBus.subscribe(msg => {
-      Write.is(msg).match(wmsg => {
-        const buf = wmsg.asBuffer();
+      WriteReq.is(msg).match(wmsg => {
+        const buf = wmsg.block.asBuffer();
         if (buf.length == 0) {
-          msgBus.next(new Written(wmsg.tid));
+          msgBus.next(new WriteRes(wmsg.tid));
         } else {
           let wrote = 0;
           for (let i = 0; i < buf.length; i += WriteProcessor.FRAGMENTSIZE) {
@@ -31,12 +33,11 @@ export class WriteProcessor {
             if (buf.length == wrote) {
               ftype |= FragmentType.LAST;
             }
-            msgBus.next(new FragmentWrite({
+            msgBus.next(new FragmentWriteReq({
               pouchConnect: wmsg.pouchConnect,
               tid: wmsg.tid,
               seq: i,
-              size: size,
-              mimeBlock: slice.toString('base64'),
+              block: new BufferBlock(slice),
               fragmentType: ftype
             }));
           }

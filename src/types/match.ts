@@ -1,4 +1,4 @@
-import { Msg } from './msg';
+import { Msg } from '../msgs/msg';
 
 export class Match<T extends Msg> {
   public readonly msg: T;
@@ -27,6 +27,10 @@ export class Match<T extends Msg> {
       return this;
     }
     return Match.nothing();
+  }
+
+  public get matched(): boolean {
+    return !!this.msg;
   }
 
   public match(cb: (t: T) => void): void {

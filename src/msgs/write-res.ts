@@ -1,15 +1,15 @@
 import * as uuid from 'uuid';
 import { Msg } from './msg';
-import { FragmentWritten } from './fragment-written';
-import { Match } from './match';
+import { FragmentWriteRes } from './fragment-write-res';
+import { Match } from '../types/match';
 
-export class Written extends Msg {
-  public readonly blocks: FragmentWritten[] = [];
+export class WriteRes extends Msg {
+  public readonly blocks: FragmentWriteRes[] = [];
 
-  public static is(msg: any): Match<Written> {
-    if (msg instanceof Written) {
+  public static is(msg: any): Match<WriteRes> {
+    if (msg instanceof WriteRes) {
       // console.log(`Match:FeedDone`, msg);
-      return Match.create<Written>(msg);
+      return Match.create<WriteRes>(msg);
     }
     return Match.nothing();
   }
