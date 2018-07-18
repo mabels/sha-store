@@ -1,17 +1,19 @@
+import * as url from 'url';
+
 import * as uuid from 'uuid';
 import * as PouchDB from 'pouchdb';
 
 import { MsgBus } from './msg-bus';
 import { WriteReq } from './msgs/write-req';
-import { PouchConnect } from './types/pouch-connect';
 import { ReadReq } from './msgs/read-req';
 import { ReadRes } from './msgs/read-res';
+import { WriteRes } from './msgs/write-res';
+
+import { PouchConnect } from './types/pouch-connect';
 import { FragmentType } from './types/fragment-type';
 import { StringBlock } from './types/string-block';
-import { WriteRes } from './msgs/write-res';
 import { Block } from './types/block';
 import { Base64Block } from './types/base64-block';
-import * as url from 'url';
 
 PouchDB.plugin(require('pouchdb-find'));
 
@@ -34,6 +36,7 @@ class ShaPouchDocV1 {
 
   private constructor(spi: ShaPouchInit) {
     this.type = this.constructor.name;
+    // console.log(`ShaPouchDocV1:ShaPouchDocV1`, this.type);
     this._id = url.resolve(this.type, uuid.v4());
     this.created = (new Date()).toISOString();
     this.sha = spi.sha;
@@ -65,25 +68,33 @@ export class Processor {
     return new Processor(msgBus);
   }
 
-  private pouchDbFrom(pc: PouchConnect): PouchDB.Database {
-    let c = this.pouchDbs.get(pc.path);
-    if (!c) {
-      const pouchDb = new PouchDB(pc.path, pc.dbConfig);
-      c = new Connection(pc, pouchDb);
-      this.pouchDbs.set(pc.path, c);
-    }
-    // console.log(`pouchDbFrom`, pc, c);
-    return c.pouchDb;
+  private pouchDbFrom(pc: PouchConnect): Promise<PouchDB.Database> {
+    return new Promise<PouchDB.Database>((rs, rj) => {
+      let c = this.pouchDbs.get(pc.path);
+      if (!c) {
+        const pouchDb = new PouchDB(pc.path, pc.dbConfig);
+        pouchDb.createIndex({ index: { fields: ['type', 'sha'] } }).then(__ => {
+          c = new Connection(pc, pouchDb);
+          this.pouchDbs.set(pc.path, c);
+          rs(c.pouchDb);
+        }).catch(rj);
+      } else {
+        rs(c.pouchDb);
+      }
+    });
   }
 
   private writeBySha(pc: PouchConnect, block: Block, created: string,
     cb: (err: any, result: PouchDB.Core.Response) => void): void {
-    const pouchDb = this.pouchDbFrom(pc);
-    pouchDb.put(ShaPouchDocV1.create({
-      sha: block.asSha(),
-      block: block.asBase64()
-    }).asObj()).then((result) => {
-      cb(undefined, result);
+    this.pouchDbFrom(pc).then(pouchDb => {
+      pouchDb.put(ShaPouchDocV1.create({
+        sha: block.asSha(),
+        block: block.asBase64()
+      }).asObj()).then((result) => {
+        cb(undefined, result);
+      }).catch(err => {
+        cb(err, undefined);
+      });
     }).catch(err => {
       cb(err, undefined);
     });
@@ -91,12 +102,16 @@ export class Processor {
 
   private readBySha(pc: PouchConnect, sha: string,
     cb: (err: any, result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => void): void {
-    const pouchDb = this.pouchDbFrom(pc);
-    pouchDb.find({
-      selector: { sha: sha },
-      fields: ['_id', 'sha', 'created', 'block'],
-    }).then((result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => {
-      cb(undefined, result);
+    this.pouchDbFrom(pc).then(pouchDb => {
+      pouchDb.find({
+        selector: { sha: sha, type: ShaPouchDocV1.name },
+        fields: ['_id', 'type', 'sha', 'created', 'block'],
+      }).then((result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => {
+        // console.log(sha, ShaPouchDocV1.name, result);
+        cb(undefined, result);
+      }).catch(err => {
+        cb(err, undefined);
+      });
     }).catch(err => {
       cb(err, undefined);
     });
