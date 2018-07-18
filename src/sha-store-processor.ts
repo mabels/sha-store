@@ -8,13 +8,17 @@ import { ReadReq } from './msgs/read-req';
 import { ReadRes } from './msgs/read-res';
 import { WriteRes } from './msgs/write-res';
 
-import { PouchConnect, MsgBus, PouchBase } from 'foundation-store';
+import {
+  PouchConfig,
+  MsgBus,
+  PouchBase,
+  PouchConnectionRes,
+  PouchConnectionReq
+} from 'foundation-store';
 import { FragmentType } from './types/fragment-type';
 import { StringBlock } from './types/string-block';
 import { Block } from './types/block';
 import { Base64Block } from './types/base64-block';
-
-PouchDB.plugin(require('pouchdb-find'));
 
 interface ShaPouchInit {
   readonly sha: string;
@@ -40,44 +44,27 @@ class ShaPouchDocV1 extends PouchBase implements ShaPouchInit {
   }
 }
 
-class Connection {
-  public readonly created: Date = new Date();
+export class ShaStoreProcessor {
 
-  public readonly pouchConnect: PouchConnect;
-  public readonly pouchDb: PouchDB.Database;
+  private readonly msgBus: MsgBus;
 
-  constructor(pc: PouchConnect, db: PouchDB.Database) {
-    this.pouchConnect = pc;
-    this.pouchDb = db;
-  }
-}
-
-export class Processor {
-
-  private readonly pouchDbs: Map<string, Connection>;
-  // private readonly writeActions: Map<string, FragmentWriteReq[]>;
-
-  public static create(msgBus: MsgBus): Processor {
-    return new Processor(msgBus);
+  public static create(msgBus: MsgBus): ShaStoreProcessor {
+    return new ShaStoreProcessor(msgBus);
   }
 
-  private pouchDbFrom(pc: PouchConnect): Promise<PouchDB.Database> {
+  private pouchDbFrom(pc: PouchConfig): Promise<PouchDB.Database> {
     return new Promise<PouchDB.Database>((rs, rj) => {
-      let c = this.pouchDbs.get(pc.path);
-      if (!c) {
-        const pouchDb = new PouchDB(pc.path, pc.dbConfig);
-        pouchDb.createIndex({ index: { fields: ['type', 'sha'] } }).then(__ => {
-          c = new Connection(pc, pouchDb);
-          this.pouchDbs.set(pc.path, c);
-          rs(c.pouchDb);
-        }).catch(rj);
-      } else {
-        rs(c.pouchDb);
-      }
+      const tid = uuid.v4();
+      this.msgBus.subscribe(msg => {
+        PouchConnectionRes.is(msg).hasTid(tid).match(pcr => {
+          rs(pcr.pouchDb);
+        });
+      });
+      this.msgBus.next(new PouchConnectionReq(tid, pc));
     });
   }
 
-  private writeBySha(pc: PouchConnect, block: Block, created: string,
+  private writeBySha(pc: PouchConfig, block: Block, created: string,
     cb: (err: any, result: PouchDB.Core.Response) => void): void {
     this.pouchDbFrom(pc).then(pouchDb => {
       pouchDb.put(ShaPouchDocV1.create({
@@ -93,7 +80,7 @@ export class Processor {
     });
   }
 
-  private readBySha(pc: PouchConnect, sha: string,
+  private readBySha(pc: PouchConfig, sha: string,
     cb: (err: any, result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => void): void {
     this.pouchDbFrom(pc).then(pouchDb => {
       pouchDb.find({
@@ -214,8 +201,7 @@ export class Processor {
   }
 
   private constructor(msgBus: MsgBus) {
-    this.pouchDbs = new Map<string, Connection>();
-
+    this.msgBus = msgBus;
     msgBus.subscribe(msg => {
       ReadReq.is(msg).match(rmsg => this.readAction(msgBus, rmsg));
       WriteReq.is(msg).match(wmsg => this.writeAction(msgBus, wmsg));

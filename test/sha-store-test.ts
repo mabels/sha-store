@@ -3,11 +3,12 @@ import * as path from 'path';
 import { assert } from 'chai';
 import {
   MsgBus,
-  PouchConnect,
-  Msg
+  PouchConfig,
+  Msg,
+  PouchConnectionPoolProcessor
 } from 'foundation-store';
 import {
-  Processor,
+  ShaStoreProcessor,
   StringBlock,
   Base64Block,
   BufferBlock,
@@ -16,15 +17,15 @@ import {
   ReadRes,
   ReadReq,
   FragmentType
-} from '../src/index';
+} from '../src';
 import { mkdir } from 'fs';
 
 describe('sha-store', () => {
-  let pouchConnect: PouchConnect;
+  let pouchConnect: PouchConfig;
   before(done => {
     // console.log('setup');
     mkdir('.pdb', () => {
-      pouchConnect = new PouchConnect({
+      pouchConnect = new PouchConfig({
         path: path.join('.pdb', uuid.v4())
       });
       done();
@@ -140,8 +141,8 @@ describe('sha-store', () => {
     it('unknown sha read', (done) => {
       const tid = uuid.v4();
       const bus = new MsgBus();
-      // WriteProcessor.create(bus);
-      Processor.create(bus);
+      PouchConnectionPoolProcessor.create(bus);
+      ShaStoreProcessor.create(bus);
       const msgBuf: Msg[] = [];
       bus.subscribe(msg => {
         msgBuf.push(msg);
@@ -185,8 +186,8 @@ describe('sha-store', () => {
     it('empty read', (done) => {
       const tid = uuid.v4();
       const bus = new MsgBus();
-      // WriteProcessor.create(bus);
-      Processor.create(bus);
+      PouchConnectionPoolProcessor.create(bus);
+      ShaStoreProcessor.create(bus);
       const msgBuf: Msg[] = [];
       bus.subscribe(msg => {
         msgBuf.push(msg);
@@ -275,8 +276,8 @@ describe('sha-store', () => {
     it('empty write', (done) => {
       const tid = uuid.v4();
       const bus = new MsgBus();
-      // WriteProcessor.create(bus);
-      Processor.create(bus);
+      PouchConnectionPoolProcessor.create(bus);
+      ShaStoreProcessor.create(bus);
       writeAction('', bus, tid, loopWriteAction(bus, 10, '', tid, done));
     });
 
@@ -284,8 +285,8 @@ describe('sha-store', () => {
       const tid = uuid.v4();
       const bus = new MsgBus();
       const block = new StringBlock('Hello World');
-      // WriteProcessor.create(bus);
-      Processor.create(bus);
+      PouchConnectionPoolProcessor.create(bus);
+      ShaStoreProcessor.create(bus);
       writeAction(block.asString(), bus, tid, loopWriteAction(bus, 10, block.asString(), tid, (err?) => {
         if (err) {
           done(err);

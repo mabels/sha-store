@@ -1,9 +1,9 @@
-import { PouchConnect, Match, Msg } from 'foundation-store';
+import { PouchConfig, Match, Msg } from 'foundation-store';
 import { Block } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
 
 export interface WriteInit {
-  readonly pouchConnect: PouchConnect;
+  readonly pouchConnect: PouchConfig;
   readonly tid: string;
   readonly seq: number;
   readonly block: Block;
@@ -11,7 +11,7 @@ export interface WriteInit {
 }
 
 export class WriteReq extends Msg implements WriteInit {
-  public readonly pouchConnect: PouchConnect;
+  public readonly pouchConnect: PouchConfig;
   public readonly seq: number;
   public readonly block: Block;
   public readonly fragmentType: FragmentType;

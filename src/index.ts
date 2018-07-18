@@ -1,4 +1,4 @@
-export { Processor } from './processor';
+export { ShaStoreProcessor } from './sha-store-processor';
 export { Block, BlockObj } from './types/block';
 export { StringBlock } from './types/string-block';
 export { Base64Block } from './types/base64-block';
