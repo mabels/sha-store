@@ -3,12 +3,14 @@ import * as path from 'path';
 import { assert } from 'chai';
 import {
   MsgBus,
-  Processor,
   PouchConnect,
+  Msg
+} from 'foundation-store';
+import {
+  Processor,
   StringBlock,
   Base64Block,
   BufferBlock,
-  Msg,
   WriteRes,
   WriteReq,
   ReadRes,

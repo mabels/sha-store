@@ -1,6 +1,4 @@
-import { Msg } from './msg';
-import { Match } from '../types/match';
-import { PouchConnect } from '../types/pouch-connect';
+import { PouchConnect, Match, Msg } from 'foundation-store';
 import { Block } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
 

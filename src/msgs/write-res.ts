@@ -1,6 +1,5 @@
 
-import { Msg } from './msg';
-import { Match } from '../types/match';
+import { Msg, Match } from 'foundation-store';
 import { FragmentType } from '../types/fragment-type';
 
 export interface WriteResObj {

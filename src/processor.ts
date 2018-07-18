@@ -3,13 +3,12 @@ import * as url from 'url';
 import * as uuid from 'uuid';
 import * as PouchDB from 'pouchdb';
 
-import { MsgBus } from './msg-bus';
 import { WriteReq } from './msgs/write-req';
 import { ReadReq } from './msgs/read-req';
 import { ReadRes } from './msgs/read-res';
 import { WriteRes } from './msgs/write-res';
 
-import { PouchConnect } from './types/pouch-connect';
+import { PouchConnect, MsgBus, PouchBase } from 'foundation-store';
 import { FragmentType } from './types/fragment-type';
 import { StringBlock } from './types/string-block';
 import { Block } from './types/block';
@@ -22,11 +21,7 @@ interface ShaPouchInit {
   readonly block: string; // mimestring
 }
 
-class ShaPouchDocV1 {
-  public readonly _id: string;
-  public readonly type: string;
-  public readonly created: string;
-
+class ShaPouchDocV1 extends PouchBase implements ShaPouchInit {
   public readonly sha: string;
   public readonly block: string; // mimestring
 
@@ -35,10 +30,7 @@ class ShaPouchDocV1 {
   }
 
   private constructor(spi: ShaPouchInit) {
-    this.type = this.constructor.name;
-    // console.log(`ShaPouchDocV1:ShaPouchDocV1`, this.type);
-    this._id = url.resolve(this.type, uuid.v4());
-    this.created = (new Date()).toISOString();
+    super();
     this.sha = spi.sha;
     this.block = spi.block;
   }
@@ -49,8 +41,9 @@ class ShaPouchDocV1 {
 }
 
 class Connection {
+  public readonly created: Date = new Date();
+
   public readonly pouchConnect: PouchConnect;
-  public readonly opened: Date = new Date();
   public readonly pouchDb: PouchDB.Database;
 
   constructor(pc: PouchConnect, db: PouchDB.Database) {
