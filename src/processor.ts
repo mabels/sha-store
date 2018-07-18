@@ -2,23 +2,47 @@ import * as uuid from 'uuid';
 import * as PouchDB from 'pouchdb';
 
 import { MsgBus } from './msg-bus';
-import { FragmentWriteReq } from './msgs/fragment-write-req';
+import { WriteReq } from './msgs/write-req';
 import { PouchConnect } from './types/pouch-connect';
-import { FragmentReadReq } from './msgs/fragment-read-req';
-import { FragmentReadRes } from './msgs/fragment-read-res';
+import { ReadReq } from './msgs/read-req';
+import { ReadRes } from './msgs/read-res';
 import { FragmentType } from './types/fragment-type';
 import { StringBlock } from './types/string-block';
-import { FragmentWriteRes } from './msgs/fragment-write-res';
+import { WriteRes } from './msgs/write-res';
 import { Block } from './types/block';
 import { Base64Block } from './types/base64-block';
+import * as url from 'url';
 
 PouchDB.plugin(require('pouchdb-find'));
 
-interface ShaPouchDoc {
-  _id: string;
-  sha: string;
-  created: string;
-  block: string; // mimestring
+interface ShaPouchInit {
+  readonly sha: string;
+  readonly block: string; // mimestring
+}
+
+class ShaPouchDocV1 {
+  public readonly _id: string;
+  public readonly type: string;
+  public readonly created: string;
+
+  public readonly sha: string;
+  public readonly block: string; // mimestring
+
+  public static create(spi: ShaPouchInit): ShaPouchDocV1 {
+    return new ShaPouchDocV1(spi);
+  }
+
+  private constructor(spi: ShaPouchInit) {
+    this.type = this.constructor.name;
+    this._id = url.resolve(this.type, uuid.v4());
+    this.created = (new Date()).toISOString();
+    this.sha = spi.sha;
+    this.block = spi.block;
+  }
+
+  public asObj(): ShaPouchDocV1 {
+    return this;
+  }
 }
 
 class Connection {
@@ -32,13 +56,13 @@ class Connection {
   }
 }
 
-export class FragmentProcessor {
+export class Processor {
 
   private readonly pouchDbs: Map<string, Connection>;
   // private readonly writeActions: Map<string, FragmentWriteReq[]>;
 
-  public static create(msgBus: MsgBus): FragmentProcessor {
-    return new FragmentProcessor(msgBus);
+  public static create(msgBus: MsgBus): Processor {
+    return new Processor(msgBus);
   }
 
   private pouchDbFrom(pc: PouchConnect): PouchDB.Database {
@@ -55,12 +79,10 @@ export class FragmentProcessor {
   private writeBySha(pc: PouchConnect, block: Block, created: string,
     cb: (err: any, result: PouchDB.Core.Response) => void): void {
     const pouchDb = this.pouchDbFrom(pc);
-    pouchDb.put({
-      _id: uuid.v4(),
+    pouchDb.put(ShaPouchDocV1.create({
       sha: block.asSha(),
-      created: created,
       block: block.asBase64()
-    }).then((result) => {
+    }).asObj()).then((result) => {
       cb(undefined, result);
     }).catch(err => {
       cb(err, undefined);
@@ -68,22 +90,22 @@ export class FragmentProcessor {
   }
 
   private readBySha(pc: PouchConnect, sha: string,
-    cb: (err: any, result: PouchDB.Find.FindResponse<ShaPouchDoc>) => void): void {
+    cb: (err: any, result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => void): void {
     const pouchDb = this.pouchDbFrom(pc);
     pouchDb.find({
       selector: { sha: sha },
       fields: ['_id', 'sha', 'created', 'block'],
-    }).then((result: PouchDB.Find.FindResponse<ShaPouchDoc>) => {
+    }).then((result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => {
       cb(undefined, result);
     }).catch(err => {
       cb(err, undefined);
     });
   }
 
-  private writeAction(msgBus: MsgBus, fwq: FragmentWriteReq): void {
+  private writeAction(msgBus: MsgBus, fwq: WriteReq): void {
     this.readBySha(fwq.pouchConnect, fwq.block.asSha(), (err, result) => {
       if (err) {
-        msgBus.next(new FragmentWriteRes({
+        msgBus.next(new WriteRes({
           error: err,
           _id: 'Error',
           created: 'Error',
@@ -95,7 +117,7 @@ export class FragmentProcessor {
         return;
       }
       if (fwq.block.length === 0) {
-        msgBus.next(new FragmentWriteRes({
+        msgBus.next(new WriteRes({
           _id: 'EMPTY',
           created: 'never',
           tid: fwq.tid,
@@ -108,7 +130,7 @@ export class FragmentProcessor {
       const created = (new Date()).toISOString();
       this.writeBySha(fwq.pouchConnect, fwq.block, created, (err_, result_) => {
         if (err_) {
-          msgBus.next(new FragmentWriteRes({
+          msgBus.next(new WriteRes({
             error: err_,
             _id: 'Error',
             created: 'Error',
@@ -119,7 +141,7 @@ export class FragmentProcessor {
           }));
           return;
         }
-        msgBus.next(new FragmentWriteRes({
+        msgBus.next(new WriteRes({
           error: err_,
           _id: result_.id,
           created: created,
@@ -132,10 +154,10 @@ export class FragmentProcessor {
     });
   }
 
-  private readAction(msgBus: MsgBus, rmsg: FragmentReadReq): void {
+  private readAction(msgBus: MsgBus, rmsg: ReadReq): void {
     this.readBySha(rmsg.pouchConnect, rmsg.sha, (err, result) => {
       if (err) {
-        msgBus.next(new FragmentReadRes({
+        msgBus.next(new ReadRes({
           pouchConnect: rmsg.pouchConnect,
           ids: [],
           tid: rmsg.tid,
@@ -148,7 +170,7 @@ export class FragmentProcessor {
         return;
       }
       if (result.docs.length == 0) {
-        msgBus.next(new FragmentReadRes({
+        msgBus.next(new ReadRes({
           pouchConnect: rmsg.pouchConnect,
           ids: [],
           sha: rmsg.sha,
@@ -165,7 +187,7 @@ export class FragmentProcessor {
         }
         result.docs.slice(0, 1).forEach(doc => {
           // console.log(`Doc:`, doc);
-          msgBus.next(new FragmentReadRes({
+          msgBus.next(new ReadRes({
             pouchConnect: rmsg.pouchConnect,
             ids: result.docs.map(i => ({ _id: i._id, created: i.created })),
             sha: rmsg.sha,
@@ -183,8 +205,8 @@ export class FragmentProcessor {
     this.pouchDbs = new Map<string, Connection>();
 
     msgBus.subscribe(msg => {
-      FragmentReadReq.is(msg).match(rmsg => this.readAction(msgBus, rmsg));
-      FragmentWriteReq.is(msg).match(wmsg => this.writeAction(msgBus, wmsg));
+      ReadReq.is(msg).match(rmsg => this.readAction(msgBus, rmsg));
+      WriteReq.is(msg).match(wmsg => this.writeAction(msgBus, wmsg));
     });
   }
 

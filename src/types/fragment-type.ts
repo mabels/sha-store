@@ -1,3 +1,4 @@
+
 export enum FragmentType {
   FIRST = 0x1,
   COMMON = 0x2,

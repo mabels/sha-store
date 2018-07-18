@@ -1,16 +1,22 @@
-import * as uuid from 'uuid';
-
 import { Msg } from './msg';
 import { Match } from '../types/match';
 import { PouchConnect } from '../types/pouch-connect';
 import { Block } from '../types/block';
-import { StringBlock } from '../types/string-block';
-import { Base64Block } from '../types/base64-block';
-import { BufferBlock } from '../types/buffer-block';
+import { FragmentType } from '../types/fragment-type';
 
-export class WriteReq extends Msg {
-  public readonly block: Block;
+export interface WriteInit {
+  readonly pouchConnect: PouchConnect;
+  readonly tid: string;
+  readonly seq: number;
+  readonly block: Block;
+  readonly fragmentType: FragmentType;
+}
+
+export class WriteReq extends Msg implements WriteInit {
   public readonly pouchConnect: PouchConnect;
+  public readonly seq: number;
+  public readonly block: Block;
+  public readonly fragmentType: FragmentType;
 
   public static is(msg: any): Match<WriteReq> {
     if (msg instanceof WriteReq) {
@@ -20,22 +26,12 @@ export class WriteReq extends Msg {
     return Match.nothing();
   }
 
-  public static string(pouchConnect: PouchConnect, str: string, tid = uuid.v4()): WriteReq {
-    return new WriteReq(pouchConnect, new StringBlock(str), tid);
-  }
-
-  public static buffer(pouchConnect: PouchConnect, buff: Buffer, tid = uuid.v4()): WriteReq {
-    return new WriteReq(pouchConnect, new BufferBlock(buff), tid);
-  }
-
-  public static base64(pouchConnect: PouchConnect, buff: string, tid = uuid.v4()): WriteReq {
-    return new WriteReq(pouchConnect, new Base64Block(buff), tid);
-  }
-
-  constructor(pouchConnect: PouchConnect, block: Block, tid = uuid.v4()) {
-    super(tid);
-    this.pouchConnect = pouchConnect;
-    this.block = block;
+  constructor(fwi: WriteInit) {
+    super(fwi.tid);
+    this.pouchConnect = fwi.pouchConnect;
+    this.seq = fwi.seq;
+    this.block = fwi.block;
+    this.fragmentType = fwi.fragmentType;
   }
 
 }

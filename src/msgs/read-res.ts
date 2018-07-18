@@ -8,7 +8,7 @@ export interface DocId {
   readonly _id: string;
   readonly created: string;
 }
-export interface FragmentReadResObj {
+export interface ReadResObj {
   readonly pouchConnect: PouchConnectObj;
   readonly ids: DocId[];
   readonly sha: string;
@@ -19,7 +19,7 @@ export interface FragmentReadResObj {
   readonly error?: Error;
 }
 
-export interface FragmentReadResInit {
+export interface ReadResInit {
   readonly pouchConnect: PouchConnect;
   readonly ids: DocId[];
   readonly sha: string;
@@ -30,7 +30,7 @@ export interface FragmentReadResInit {
   readonly error?: Error;
 }
 
-export class FragmentReadRes extends Msg implements FragmentReadResInit {
+export class ReadRes extends Msg implements ReadResInit {
   public readonly pouchConnect: PouchConnect;
   public readonly ids: DocId[];
   public readonly sha: string;
@@ -39,15 +39,15 @@ export class FragmentReadRes extends Msg implements FragmentReadResInit {
   public readonly fragmentType: FragmentType;
   public readonly error?: Error;
 
-  public static is(msg: any): Match<FragmentReadRes> {
-    if (msg instanceof FragmentReadRes) {
+  public static is(msg: any): Match<ReadRes> {
+    if (msg instanceof ReadRes) {
       // console.log(`Match:FeedDone`, msg);
-      return Match.create<FragmentReadRes>(msg);
+      return Match.create<ReadRes>(msg);
     }
     return Match.nothing();
   }
 
-  constructor(fwi: FragmentReadResInit) {
+  constructor(fwi: ReadResInit) {
     super(fwi.tid);
     this.pouchConnect = fwi.pouchConnect;
     this.ids = fwi.ids;
@@ -62,7 +62,7 @@ export class FragmentReadRes extends Msg implements FragmentReadResInit {
     return !!this.error;
   }
 
-  public asObj(): FragmentReadResObj {
+  public asObj(): ReadResObj {
     return {
       tid: this.tid,
       ids: this.ids,
