@@ -1,6 +1,6 @@
 {
   "name": "sha-store",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "write data to pouchdb",
   "main": "./dist/src/index.js",
   "typings": "dist/src/index.d.ts",
