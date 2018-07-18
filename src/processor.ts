@@ -197,7 +197,11 @@ export class Processor {
           // console.log(`Doc:`, doc);
           msgBus.next(new ReadRes({
             pouchConnect: rmsg.pouchConnect,
-            ids: result.docs.map(i => ({ _id: i._id, created: i.created })),
+            ids: result.docs.map(i => new PouchBase({
+              _id: i._id,
+              type: i.type,
+              created: i.created
+            })),
             sha: rmsg.sha,
             tid: rmsg.tid,
             seq: rmsg.seq,

@@ -171,8 +171,6 @@ describe('sha-store', () => {
         tid: tid,
         sha: 'murks',
         seq: 4711,
-        ofs: 96,
-        size: 69,
         fragmentType: FragmentType.COMMON,
       }));
     });
@@ -218,8 +216,6 @@ describe('sha-store', () => {
         tid: tid,
         sha: 'murks',
         seq: 4711,
-        size: 0,
-        ofs: 22,
         fragmentType: FragmentType.COMMON,
       }));
     });

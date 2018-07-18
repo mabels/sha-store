@@ -1,14 +1,10 @@
-import { PouchConnectObj, PouchConnect, Match, Msg } from 'foundation-store';
+import { PouchConnectObj, PouchConnect, Match, Msg, PouchBase } from 'foundation-store';
 import { Block, BlockObj } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
 
-export interface DocId {
-  readonly _id: string;
-  readonly created: string;
-}
 export interface ReadResObj {
   readonly pouchConnect: PouchConnectObj;
-  readonly ids: DocId[];
+  readonly ids: PouchBase[];
   readonly sha: string;
   readonly tid: string;
   readonly seq: number;
@@ -19,7 +15,7 @@ export interface ReadResObj {
 
 export interface ReadResInit {
   readonly pouchConnect: PouchConnect;
-  readonly ids: DocId[];
+  readonly ids: PouchBase[];
   readonly sha: string;
   readonly tid: string;
   readonly seq: number;
@@ -30,7 +26,7 @@ export interface ReadResInit {
 
 export class ReadRes extends Msg implements ReadResInit {
   public readonly pouchConnect: PouchConnect;
-  public readonly ids: DocId[];
+  public readonly ids: PouchBase[];
   public readonly sha: string;
   public readonly seq: number;
   public readonly block: Block;

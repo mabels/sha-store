@@ -1,4 +1,5 @@
 export { Processor } from './processor';
+export { Block, BlockObj } from './types/block';
 export { StringBlock } from './types/string-block';
 export { Base64Block } from './types/base64-block';
 export { BufferBlock } from './types/buffer-block';
