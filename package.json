@@ -1,15 +1,15 @@
 {
-  "name": "sha-storage",
-  "version": "1.0.0",
+  "name": "sha-store",
+  "version": "1.0.1",
   "description": "write data to pouchdb",
-  "bin": "./bin/might-be-use-full",
   "main": "./dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "files": [
-    "dist/src/",
-    "bin",
+    "dist",
     "src",
-    "test"
+    "test",
+    "tsconfig.json",
+    "tslint.json"
   ],
   "engines": {
     "node": ">=8.0.0"
@@ -23,13 +23,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "mabels/sha-storage"
+    "url": "mabels/sha-store"
   },
   "license": "AFL-2.0",
   "bugs": {
-    "url": "https://github.com/mabels/sha-storage/issues"
+    "url": "https://github.com/mabels/sha-store/issues"
   },
-  "homepage": "https://github.com/mabels/sha-storage#readme",
+  "homepage": "https://github.com/mabels/sha-store#readme",
   "devDependencies": {
     "@types/chai": "4.1.4",
     "@types/mocha": "5.2.5",

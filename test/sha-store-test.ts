@@ -32,7 +32,7 @@ import {
 // import { FragmentType } from '../src/types/fragment-type';
 
 const pouchConnect: PouchConnect = new PouchConnect({
-  path: './dist/test/pdb'
+  path: './.pdb'
 });
 
 describe('blocks', () => {
@@ -66,7 +66,7 @@ describe('fragment-write and fragment-written', () => {
       block: new StringBlock('jojo'),
       fragmentType: FragmentType.COMMON | FragmentType.FIRST
     });
-    assert.equal(fw.pouchConnect.path, './dist/test/pdb');
+    assert.equal(fw.pouchConnect.path, './.pdb');
     assert.equal(fw.tid, 'tid');
     assert.equal(fw.seq, 1);
     assert.equal(fw.block.asString(), 'jojo');
@@ -89,7 +89,7 @@ describe('fragment-write and fragment-written', () => {
       seq: 1,
       fragmentType: fw.fragmentType
     });
-    assert.equal(fw.pouchConnect.path, './dist/test/pdb');
+    assert.equal(fw.pouchConnect.path, './.pdb');
     assert.equal(fwn._id, '_id');
     assert.equal(fwn.created, 'DateMe');
     assert.equal(fwn.sha, 'sha');
@@ -105,7 +105,7 @@ describe('fragment-write and fragment-written', () => {
 //   it('Write.string', () => {
 //     const str = Buffer.from('meno', 'utf8');
 //     const fw = WriteReq.string(pouchConnect, str.toString(), 'tid');
-//     assert.equal(fw.pouchConnect.path, './dist/test/pdb');
+//     assert.equal(fw.pouchConnect.path, './.pdb');
 //     assert.equal(fw.tid, 'tid');
 //     assert.equal(fw.block.asBase64(), str.toString('base64'));
 //   });
@@ -113,7 +113,7 @@ describe('fragment-write and fragment-written', () => {
 //   it('Write.base64', () => {
 //     const str = Buffer.from('meno', 'utf8');
 //     const fw = WriteReq.base64(pouchConnect, str.toString('base64'), 'tid');
-//     assert.equal(fw.pouchConnect.path, './dist/test/pdb');
+//     assert.equal(fw.pouchConnect.path, './.pdb');
 //     assert.equal(fw.tid, 'tid');
 //     assert.equal(fw.block.asBase64(), str.toString('base64'));
 //   });
@@ -121,7 +121,7 @@ describe('fragment-write and fragment-written', () => {
 //   it('Write.buffer', () => {
 //     const str = Buffer.from('meno', 'utf8');
 //     const fw = WriteReq.buffer(pouchConnect, str, 'tid');
-//     assert.equal(fw.pouchConnect.path, './dist/test/pdb');
+//     assert.equal(fw.pouchConnect.path, './.pdb');
 //     assert.equal(fw.tid, 'tid');
 //     assert.equal(fw.block.asBase64(), str.toString('base64'));
 //   });
@@ -308,7 +308,7 @@ describe('fragment write', () => {
               ids: frs.ids,
               pouchConnect: {
                 dbConfig: undefined,
-                path: './dist/test/pdb'
+                path: './.pdb'
               },
               seq: 4711,
               sha: 'a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e',
