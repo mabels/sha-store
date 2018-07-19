@@ -62,13 +62,13 @@ describe('sha-store', () => {
 
     it('fragment-write', () => {
       const fw = new WriteReq({
-        pouchConnect: pouchConnect,
+        config: pouchConnect,
         tid: 'tid',
         seq: 1,
         block: new StringBlock('jojo'),
         fragmentType: FragmentType.COMMON | FragmentType.FIRST
       });
-      assert.equal(fw.pouchConnect.path, pouchConnect.path);
+      assert.equal(fw.config.path, pouchConnect.path);
       assert.equal(fw.tid, 'tid');
       assert.equal(fw.seq, 1);
       assert.equal(fw.block.asString(), 'jojo');
@@ -77,7 +77,7 @@ describe('sha-store', () => {
 
     it('fragment-written', () => {
       const fw = new WriteReq({
-        pouchConnect: pouchConnect,
+        config: pouchConnect,
         tid: 'tid',
         seq: 1,
         block: new StringBlock('jojo'),
@@ -91,7 +91,7 @@ describe('sha-store', () => {
         seq: 1,
         fragmentType: fw.fragmentType
       });
-      assert.equal(fw.pouchConnect.path, pouchConnect.path);
+      assert.equal(fw.config.path, pouchConnect.path);
       assert.equal(fwn._id, '_id');
       assert.equal(fwn.created, 'DateMe');
       assert.equal(fwn.sha, 'sha');
@@ -150,7 +150,6 @@ describe('sha-store', () => {
           try {
             assert.deepEqual([
               new ReadRes({
-                pouchConnect: pouchConnect,
                 ids: frq.ids,
                 sha: 'murks',
                 tid: tid,
@@ -195,7 +194,6 @@ describe('sha-store', () => {
           try {
             assert.deepEqual([
               new ReadRes({
-                pouchConnect: pouchConnect,
                 ids: frq.ids,
                 sha: 'murks',
                 tid: tid,
@@ -228,7 +226,7 @@ describe('sha-store', () => {
       const msgBuf: Msg[] = [];
       const block = new StringBlock(str);
       const fws = new WriteReq({
-        pouchConnect: pouchConnect,
+        config: pouchConnect,
         tid: tid,
         seq: 4711,
         block: block,
@@ -304,10 +302,6 @@ describe('sha-store', () => {
                 error: undefined,
                 fragmentType: FragmentType.FIRST,
                 ids: frs.ids,
-                pouchConnect: {
-                  dbConfig: undefined,
-                  path: pouchConnect.path
-                },
                 seq: 4711,
                 sha: 'a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e',
                 tid: tid

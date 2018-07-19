@@ -3,7 +3,7 @@ import { Block } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
 
 export interface WriteInit {
-  readonly pouchConnect: PouchConfig;
+  readonly config: PouchConfig;
   readonly tid: string;
   readonly seq: number;
   readonly block: Block;
@@ -11,7 +11,7 @@ export interface WriteInit {
 }
 
 export class WriteReq extends Msg implements WriteInit {
-  public readonly pouchConnect: PouchConfig;
+  public readonly config: PouchConfig;
   public readonly seq: number;
   public readonly block: Block;
   public readonly fragmentType: FragmentType;
@@ -26,7 +26,7 @@ export class WriteReq extends Msg implements WriteInit {
 
   constructor(fwi: WriteInit) {
     super(fwi.tid);
-    this.pouchConnect = fwi.pouchConnect;
+    this.config = fwi.config;
     this.seq = fwi.seq;
     this.block = fwi.block;
     this.fragmentType = fwi.fragmentType;

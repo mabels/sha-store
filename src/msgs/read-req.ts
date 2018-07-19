@@ -11,7 +11,7 @@ export interface ReadReqInit {
 }
 
 export class ReadReq extends Msg {
-  public readonly pouchConnect: PouchConfig;
+  public readonly config: PouchConfig;
   public readonly sha: string;
   public readonly seq: number;
   public readonly block: Block;
@@ -27,7 +27,7 @@ export class ReadReq extends Msg {
 
   constructor(fwi: ReadReqInit) {
     super(fwi.tid);
-    this.pouchConnect = fwi.pouchConnect;
+    this.config = fwi.pouchConnect;
     this.sha = fwi.sha;
     this.seq = fwi.seq;
     this.fragmentType = fwi.fragmentType;

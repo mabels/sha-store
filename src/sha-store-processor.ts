@@ -99,7 +99,7 @@ export class ShaStoreProcessor {
   }
 
   private writeAction(msgBus: MsgBus, fwq: WriteReq): void {
-    this.readBySha(fwq.pouchConnect, fwq.block.asSha(), (err, result) => {
+    this.readBySha(fwq.config, fwq.block.asSha(), (err, result) => {
       if (err) {
         msgBus.next(new WriteRes({
           error: err,
@@ -124,7 +124,7 @@ export class ShaStoreProcessor {
         return;
       }
       const created = (new Date()).toISOString();
-      this.writeBySha(fwq.pouchConnect, fwq.block, created, (err_, result_) => {
+      this.writeBySha(fwq.config, fwq.block, created, (err_, result_) => {
         if (err_) {
           msgBus.next(new WriteRes({
             error: err_,
@@ -151,10 +151,9 @@ export class ShaStoreProcessor {
   }
 
   private readAction(msgBus: MsgBus, rmsg: ReadReq): void {
-    this.readBySha(rmsg.pouchConnect, rmsg.sha, (err, result) => {
+    this.readBySha(rmsg.config, rmsg.sha, (err, result) => {
       if (err) {
         msgBus.next(new ReadRes({
-          pouchConnect: rmsg.pouchConnect,
           ids: [],
           tid: rmsg.tid,
           sha: rmsg.sha,
@@ -167,7 +166,6 @@ export class ShaStoreProcessor {
       }
       if (result.docs.length == 0) {
         msgBus.next(new ReadRes({
-          pouchConnect: rmsg.pouchConnect,
           ids: [],
           sha: rmsg.sha,
           tid: rmsg.tid,
@@ -184,7 +182,6 @@ export class ShaStoreProcessor {
         result.docs.slice(0, 1).forEach(doc => {
           // console.log(`Doc:`, doc);
           msgBus.next(new ReadRes({
-            pouchConnect: rmsg.pouchConnect,
             ids: result.docs.map(i => new PouchBase({
               _id: i._id,
               type: i.type,

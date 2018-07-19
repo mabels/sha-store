@@ -3,7 +3,6 @@ import { Block, BlockObj } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
 
 export interface ReadResObj {
-  readonly pouchConnect: PouchConfigObj;
   readonly ids: PouchBase[];
   readonly sha: string;
   readonly tid: string;
@@ -14,7 +13,6 @@ export interface ReadResObj {
 }
 
 export interface ReadResInit {
-  readonly pouchConnect: PouchConfig;
   readonly ids: PouchBase[];
   readonly sha: string;
   readonly tid: string;
@@ -25,7 +23,6 @@ export interface ReadResInit {
 }
 
 export class ReadRes extends Msg implements ReadResInit {
-  public readonly pouchConnect: PouchConfig;
   public readonly ids: PouchBase[];
   public readonly sha: string;
   public readonly seq: number;
@@ -43,7 +40,6 @@ export class ReadRes extends Msg implements ReadResInit {
 
   constructor(fwi: ReadResInit) {
     super(fwi.tid);
-    this.pouchConnect = fwi.pouchConnect;
     this.ids = fwi.ids;
     this.sha = fwi.sha;
     this.seq = fwi.seq;
@@ -61,7 +57,6 @@ export class ReadRes extends Msg implements ReadResInit {
       tid: this.tid,
       ids: this.ids,
       sha: this.sha,
-      pouchConnect: this.pouchConnect.asObj(),
       seq: this.seq,
       block: this.block.asObj(),
       fragmentType: this.fragmentType,
