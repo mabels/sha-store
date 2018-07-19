@@ -55,8 +55,9 @@ export class ShaStoreProcessor {
   private pouchDbFrom(pc: PouchConfig): Promise<PouchDB.Database> {
     return new Promise<PouchDB.Database>((rs, rj) => {
       const tid = uuid.v4();
-      this.msgBus.subscribe(msg => {
+      const sub = this.msgBus.subscribe(msg => {
         PouchConnectionRes.is(msg).hasTid(tid).match(pcr => {
+          sub.unsubscribe();
           rs(pcr.pouchDb);
         });
       });
