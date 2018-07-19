@@ -42,7 +42,7 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
-    "foundation-store": "^2.0.0",
+    "foundation-store": "^3.0.1",
     "pouchdb": "^7.0.0",
     "pouchdb-find": "^7.0.0",
     "rxjs": "^6.2.2",
