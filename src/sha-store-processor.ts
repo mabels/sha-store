@@ -13,29 +13,43 @@ import {
   MsgBus,
   PouchBase,
   PouchConnectionRes,
-  PouchConnectionReq
+  PouchConnectionReq,
+  PouchBaseInit
 } from 'foundation-store';
 import { FragmentType } from './types/fragment-type';
 import { StringBlock } from './types/string-block';
 import { Block } from './types/block';
 import { Base64Block } from './types/base64-block';
 
-interface ShaPouchInit {
+export interface ShaStoreRefInit extends PouchBaseInit {
   readonly sha: string;
+}
+
+export class ShaStoreRef extends PouchBase implements ShaStoreRefInit {
+  public readonly sha: string;
+  constructor(ssri: ShaStoreRefInit) {
+    super(ssri);
+    this.sha = ssri.sha;
+  }
+
+  public asObj(): ShaStoreRef {
+    return this;
+  }
+}
+
+export interface ShaPouchDocV1Init extends ShaStoreRefInit {
   readonly block: string; // mimestring
 }
 
-class ShaPouchDocV1 extends PouchBase implements ShaPouchInit {
-  public readonly sha: string;
+export class ShaPouchDocV1 extends ShaStoreRef implements ShaPouchDocV1Init {
   public readonly block: string; // mimestring
 
-  public static create(spi: ShaPouchInit): ShaPouchDocV1 {
+  public static create(spi: ShaPouchDocV1Init): ShaPouchDocV1 {
     return new ShaPouchDocV1(spi);
   }
 
-  private constructor(spi: ShaPouchInit) {
-    super();
-    this.sha = spi.sha;
+  private constructor(spi: ShaPouchDocV1Init) {
+    super(spi);
     this.block = spi.block;
   }
 
@@ -86,7 +100,7 @@ export class ShaStoreProcessor {
     this.pouchDbFrom(pc).then(pouchDb => {
       pouchDb.find({
         selector: { sha: sha, type: ShaPouchDocV1.name },
-        fields: ['_id', 'type', 'sha', 'created', 'block'],
+        // fields: ['_id', 'type', 'sha', 'created', 'block'],
       }).then((result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => {
         // console.log(sha, ShaPouchDocV1.name, result);
         cb(undefined, result);

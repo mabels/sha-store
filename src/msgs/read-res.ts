@@ -1,11 +1,12 @@
 import { PouchConfigObj, PouchConfig, Match, Msg, PouchBase } from 'foundation-store';
 import { Block, BlockObj } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
+import { MsgInit } from '../../node_modules/foundation-store/dist/src/types/msg';
 
-export interface ReadResObj {
-  readonly ids: PouchBase[];
+export interface ReadResObj extends MsgInit {
+  readonly shaRef: PouchBase[];
   readonly sha: string;
-  readonly tid: string;
+
   readonly seq: number;
   readonly block: BlockObj;
   readonly fragmentType: FragmentType;
@@ -39,7 +40,7 @@ export class ReadRes extends Msg implements ReadResInit {
   }
 
   constructor(fwi: ReadResInit) {
-    super(fwi.tid);
+    super(fwi);
     this.ids = fwi.ids;
     this.sha = fwi.sha;
     this.seq = fwi.seq;

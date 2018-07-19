@@ -1,21 +1,10 @@
 import { PouchConfig, Match, Msg } from 'foundation-store';
 import { Block } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
+import { PouchConfigMsgInit, PouchConfigMsg } from './pouch-config-msg';
+import { ShaStorePouchConfigMsg, ShaStorePouchConfigMsgInit } from './sha-store-pouch-config-msg';
 
-export interface ReadReqInit {
-  readonly tid: string;
-  readonly sha: string;
-  readonly pouchConnect: PouchConfig;
-  readonly seq: number;
-  readonly fragmentType: FragmentType;
-}
-
-export class ReadReq extends Msg {
-  public readonly config: PouchConfig;
-  public readonly sha: string;
-  public readonly seq: number;
-  public readonly block: Block;
-  public readonly fragmentType: FragmentType;
+export class ReadReq extends ShaStorePouchConfigMsg {
 
   public static is(msg: any): Match<ReadReq> {
     if (msg instanceof ReadReq) {
@@ -25,12 +14,8 @@ export class ReadReq extends Msg {
     return Match.nothing();
   }
 
-  constructor(fwi: ReadReqInit) {
-    super(fwi.tid);
-    this.config = fwi.pouchConnect;
-    this.sha = fwi.sha;
-    this.seq = fwi.seq;
-    this.fragmentType = fwi.fragmentType;
+  constructor(fwi: ShaStorePouchConfigMsgInit) {
+    super(fwi);
   }
 
 }

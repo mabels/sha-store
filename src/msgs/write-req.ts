@@ -1,20 +1,16 @@
 import { PouchConfig, Match, Msg } from 'foundation-store';
 import { Block } from '../types/block';
 import { FragmentType } from '../types/fragment-type';
+import { MsgInit } from '../../node_modules/foundation-store/dist/src/types/msg';
+import { PouchConfigMsgInit, PouchConfigMsg } from './pouch-config-msg';
+import { ShaStorePouchConfigMsgInit, ShaStorePouchConfigMsg } from './sha-store-pouch-config-msg';
 
-export interface WriteInit {
-  readonly config: PouchConfig;
-  readonly tid: string;
-  readonly seq: number;
+export interface WriteReqInit extends ShaStorePouchConfigMsgInit {
   readonly block: Block;
-  readonly fragmentType: FragmentType;
 }
 
-export class WriteReq extends Msg implements WriteInit {
-  public readonly config: PouchConfig;
-  public readonly seq: number;
+export class WriteReq extends ShaStorePouchConfigMsg implements WriteReqInit {
   public readonly block: Block;
-  public readonly fragmentType: FragmentType;
 
   public static is(msg: any): Match<WriteReq> {
     if (msg instanceof WriteReq) {
@@ -24,12 +20,9 @@ export class WriteReq extends Msg implements WriteInit {
     return Match.nothing();
   }
 
-  constructor(fwi: WriteInit) {
-    super(fwi.tid);
-    this.config = fwi.config;
-    this.seq = fwi.seq;
+  constructor(fwi: WriteReqInit) {
+    super(fwi);
     this.block = fwi.block;
-    this.fragmentType = fwi.fragmentType;
   }
 
 }
