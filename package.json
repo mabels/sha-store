@@ -1,6 +1,6 @@
 {
-  "name": "sha-store",
-  "version": "3.0.0",
+  "name": "@storemate/sha-store",
+  "version": "4.0.0",
   "description": "write data to pouchdb",
   "main": "./dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -42,7 +42,7 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
-    "foundation-store": "^3.0.1",
+    "@storemate/foundation-store": "file:../foundation-store",
     "pouchdb": "^7.0.0",
     "pouchdb-find": "^7.0.0",
     "rxjs": "^6.2.2",

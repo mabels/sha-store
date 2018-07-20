@@ -1,67 +1,47 @@
-import { PouchConfigObj, PouchConfig, Match, Msg, PouchBase } from 'foundation-store';
-import { Block, BlockObj } from '../types/block';
-import { FragmentType } from '../types/fragment-type';
-import { MsgInit } from '../../node_modules/foundation-store/dist/src/types/msg';
+import { Types } from '@storemate/foundation-store';
+import { BlockObj, Block } from '../types/block';
+import { SeqFragmentTypeInit, SeqFragmentType } from './seq-fragment-type';
+import { MsgInit } from '../../node_modules/@storemate/foundation-store/dist/src/types';
 
-export interface ReadResObj extends MsgInit {
-  readonly shaRef: PouchBase[];
+export interface ReadResInit extends Types.MatchType {
+  readonly msg: MsgInit;
   readonly sha: string;
-
-  readonly seq: number;
   readonly block: BlockObj;
-  readonly fragmentType: FragmentType;
-  readonly error?: Error;
+  readonly seqFragmentType: SeqFragmentTypeInit;
+  readonly refs: Types.DbRefInit[];
 }
 
-export interface ReadResInit {
-  readonly ids: PouchBase[];
-  readonly sha: string;
-  readonly tid: string;
-  readonly seq: number;
-  readonly block: Block;
-  readonly fragmentType: FragmentType;
-  readonly error?: Error;
-}
-
-export class ReadRes extends Msg implements ReadResInit {
-  public readonly ids: PouchBase[];
+export class ReadRes extends Types.Typeable implements ReadResInit {
+  public readonly msg: MsgInit;
   public readonly sha: string;
-  public readonly seq: number;
-  public readonly block: Block;
-  public readonly fragmentType: FragmentType;
-  public readonly error?: Error;
+  public readonly block: BlockObj;
+  public readonly seqFragmentType: SeqFragmentTypeInit;
+  public readonly refs: Types.DbRefInit[];
 
-  public static is(msg: any): Match<ReadRes> {
+  public static is(msg: any): Types.Match<ReadRes> {
     if (msg instanceof ReadRes) {
       // console.log(`Match:FeedDone`, msg);
-      return Match.create<ReadRes>(msg);
+      return Types.Match.create<ReadRes>(msg);
     }
-    return Match.nothing();
+    return Types.Match.nothing();
   }
 
   constructor(fwi: ReadResInit) {
     super(fwi);
-    this.ids = fwi.ids;
     this.sha = fwi.sha;
-    this.seq = fwi.seq;
     this.block = fwi.block;
-    this.fragmentType = fwi.fragmentType;
-    this.error = fwi.error;
+    this.refs = fwi.refs;
+    this.seqFragmentType = fwi.seqFragmentType;
   }
 
-  public isOk(): boolean {
-    return !!this.error;
-  }
-
-  public asObj(): ReadResObj {
+  public asObj(): ReadResInit {
     return {
-      tid: this.tid,
-      ids: this.ids,
+      msg: Types.Msg.toObj(this.msg),
+      type: this.type,
       sha: this.sha,
-      seq: this.seq,
-      block: this.block.asObj(),
-      fragmentType: this.fragmentType,
-      error: this.error
+      block: Block.toObj(this.block),
+      seqFragmentType: SeqFragmentType.toObj(this.seqFragmentType),
+      refs: this.refs
     };
   }
 

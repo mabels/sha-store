@@ -1,13 +1,30 @@
 import * as crypto from 'crypto';
 
 export interface BlockObj {
-  sha: string;
-  mime: string;
+  readonly sha: string;
+  readonly mime: string;
 }
 
-export abstract class Block {
+export interface BlockInit {
+  length: number;
+
+  asBuffer(): Buffer;
+  asBase64(): string;
+  asString(): string;
+  asSha(): string;
+  asObj(): BlockObj;
+}
+
+export abstract class Block implements BlockInit {
 
   private cachedSha?: string;
+
+  public static toObj(my: BlockObj): BlockObj {
+    return {
+      sha: my.sha,
+      mime: my.mime
+    };
+  }
 
   public abstract asBuffer(): Buffer;
 
@@ -31,9 +48,9 @@ export abstract class Block {
   }
 
   public asObj(): BlockObj {
-    return {
+    return Block.toObj({
       sha: this.asSha(),
       mime: this.asBase64()
-    };
+    });
   }
 }

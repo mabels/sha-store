@@ -9,35 +9,34 @@ import { ReadRes } from './msgs/read-res';
 import { WriteRes } from './msgs/write-res';
 
 import {
-  PouchConfig,
-  MsgBus,
-  PouchBase,
-  PouchConnectionRes,
-  PouchConnectionReq,
-  PouchBaseInit
-} from 'foundation-store';
+  Types,
+  Msgs,
+  MsgBus
+} from '@storemate/foundation-store';
 import { FragmentType } from './types/fragment-type';
 import { StringBlock } from './types/string-block';
-import { Block } from './types/block';
+import { BlockObj } from './types/block';
 import { Base64Block } from './types/base64-block';
+import { DbRef } from '../node_modules/@storemate/foundation-store/dist/src/types';
 
-export interface ShaStoreRefInit extends PouchBaseInit {
+// export interface ShaStoreRefInit extends Types.MatchType {
+//   readonly sha: string;
+// }
+
+// export class ShaStoreRef extends PouchBase implements ShaStoreRefInit {
+//   public readonly sha: string;
+//   constructor(ssri: ShaStoreRefInit) {
+//     super(ssri);
+//     this.sha = ssri.sha;
+//   }
+
+//   public asObj(): ShaStoreRef {
+//     return this;
+//   }
+// }
+
+export interface ShaPouchDocV1Init {
   readonly sha: string;
-}
-
-export class ShaStoreRef extends PouchBase implements ShaStoreRefInit {
-  public readonly sha: string;
-  constructor(ssri: ShaStoreRefInit) {
-    super(ssri);
-    this.sha = ssri.sha;
-  }
-
-  public asObj(): ShaStoreRef {
-    return this;
-  }
-}
-
-export interface ShaPouchDocV1Init extends ShaStoreRefInit {
   readonly block: string; // mimestring
 }
 
@@ -66,21 +65,24 @@ export class ShaStoreProcessor {
     return new ShaStoreProcessor(msgBus);
   }
 
-  private pouchDbFrom(pc: PouchConfig): Promise<PouchDB.Database> {
+  private pouchDbFrom(pc: Types.PouchConfigInit): Promise<PouchDB.Database> {
     return new Promise<PouchDB.Database>((rs, rj) => {
       const tid = uuid.v4();
       const sub = this.msgBus.subscribe(msg => {
-        PouchConnectionRes.is(msg).hasTid(tid).match(pcr => {
+        Msgs.PouchConnectionRes.is(msg).hasTid(tid).match(pcr => {
           sub.unsubscribe();
           rs(pcr.pouchDb);
         });
       });
-      this.msgBus.next(new PouchConnectionReq(tid, pc));
+      this.msgBus.next(new Msgs.PouchConnectionReq({
+        msg: { tid: tid},
+        config: pc
+      }));
     });
   }
 
-  private writeBySha(pc: PouchConfig, block: Block, created: string,
-    cb: (err: any, result: PouchDB.Core.Response) => void): void {
+  private writeBySha(pc: Types.PouchConfigInit, block: BlockObj, created: string,
+    cb: (err: any, result?: PouchDB.Core.Response) => void): void {
     this.pouchDbFrom(pc).then(pouchDb => {
       pouchDb.put(ShaPouchDocV1.create({
         sha: block.asSha(),
@@ -95,8 +97,8 @@ export class ShaStoreProcessor {
     });
   }
 
-  private readBySha(pc: PouchConfig, sha: string,
-    cb: (err: any, result: PouchDB.Find.FindResponse<ShaPouchDocV1>) => void): void {
+  private readBySha(pc: Types.PouchConfigInit, sha: string,
+    cb: (err: any, result?: PouchDB.Find.FindResponse<ShaPouchDocV1>) => void): void {
     this.pouchDbFrom(pc).then(pouchDb => {
       pouchDb.find({
         selector: { sha: sha, type: ShaPouchDocV1.name },
@@ -113,27 +115,33 @@ export class ShaStoreProcessor {
   }
 
   private writeAction(msgBus: MsgBus, fwq: WriteReq): void {
-    this.readBySha(fwq.config, fwq.block.asSha(), (err, result) => {
-      if (err) {
+    this.readBySha(fwq.config, fwq.block.sha, (err, result) => {
+      if (err || !result) {
         msgBus.next(new WriteRes({
-          error: err,
-          _id: 'Error',
-          created: 'Error',
-          tid: fwq.tid,
-          sha: fwq.block.asSha(),
-          seq: fwq.seq,
-          fragmentType: fwq.fragmentType
+          dbRefs: [{
+            _id: 'Error',
+            error: err,
+            created: 'Error'
+          }],
+          msg: {
+            tid: fwq.msg.tid
+          },
+          sha: fwq.block.sha,
+          seqFragment: fwq.seqFragment
         }));
         return;
       }
-      if (fwq.block.length === 0) {
+      if (result.docs.length === 0) {
         msgBus.next(new WriteRes({
+          dbRefs: [{
           _id: 'EMPTY',
           created: 'never',
-          tid: fwq.tid,
-          sha: fwq.block.asSha(),
-          seq: fwq.seq,
-          fragmentType: fwq.fragmentType
+          }],
+          msg: {
+            tid: fwq.msg.tid
+          },
+          sha: fwq.block.sha,
+          seqFragment: fwq.seqFragment
         }));
         return;
       }
@@ -141,20 +149,26 @@ export class ShaStoreProcessor {
       this.writeBySha(fwq.config, fwq.block, created, (err_, result_) => {
         if (err_) {
           msgBus.next(new WriteRes({
-            error: err_,
-            _id: 'Error',
-            created: 'Error',
-            tid: fwq.tid,
-            sha: fwq.block.asSha(),
-            seq: fwq.seq,
-            fragmentType: fwq.fragmentType
+            dbRefs: [ {
+              error: err_,
+              _id: 'Error',
+              created: 'Error',
+            }],
+            msg: fwq.msg,
+            sha: fwq.block.sha,
+            seqFragment: fwq.seqFragment
           }));
           return;
         }
         msgBus.next(new WriteRes({
-          error: err_,
-          _id: result_.id,
-          created: created,
+          dbRefs: result.docs.map(i => new DbRef({
+            _id: i._id,
+            created: i.c
+          }))
+            error: err_,
+            _id: result_.id,
+            created: created,
+          }]
           tid: fwq.tid,
           sha: fwq.block.asSha(),
           seq: fwq.seq,
@@ -182,10 +196,12 @@ export class ShaStoreProcessor {
         msgBus.next(new ReadRes({
           ids: [],
           sha: rmsg.sha,
-          tid: rmsg.tid,
-          seq: rmsg.seq,
+          msg: { tid: rmsg.tid },
           block: new StringBlock(''),
-          fragmentType: FragmentType.NOTFOUND
+          seqFragmentType: {
+            seq: -1,
+            fragmentType: FragmentType.NOTFOUND
+          }
         }));
       } else {
         // console.log(result);
@@ -196,16 +212,15 @@ export class ShaStoreProcessor {
         result.docs.slice(0, 1).forEach(doc => {
           // console.log(`Doc:`, doc);
           msgBus.next(new ReadRes({
-            ids: result.docs.map(i => new PouchBase({
+            dbRefs: result.docs.map(i => new DbRef({
               _id: i._id,
               type: i.type,
               created: i.created
             })),
+            msg: rmsg.msg,
             sha: rmsg.sha,
-            tid: rmsg.tid,
-            seq: rmsg.seq,
-            block: new Base64Block(doc.block),
-            fragmentType: rmsg.fragmentType
+            seqFragmentType: rmsg.seqFragmentType,
+            block: (new Base64Block(doc.block)).asObj()
           }));
         });
       }

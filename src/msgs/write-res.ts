@@ -1,56 +1,41 @@
 
-import { Msg, Match } from 'foundation-store';
-import { FragmentType } from '../types/fragment-type';
+import { Types } from '@storemate/foundation-store';
+import { SeqFragmentTypeInit, SeqFragmentType } from './seq-fragment-type';
 
-export interface WriteResObj {
-  readonly error?: Error;
-  readonly _id: string;
-  readonly created: string;
-  readonly tid: string;
+export interface WriteResInit extends Types.MatchType {
+  readonly seqFragment: SeqFragmentTypeInit;
+  readonly dbRefs: Types.DbRefInit[];
   readonly sha: string;
-  readonly seq: number;
-  readonly fragmentType: FragmentType;
 }
 
-export class WriteRes extends Msg implements WriteResObj {
-  public readonly error?: Error;
-  public readonly _id: string;
-  public readonly created: string;
+export class WriteRes extends Types.Typeable implements WriteResInit {
+  public readonly msg: Types.MsgInit;
   public readonly sha: string;
-  public readonly seq: number;
-  public readonly fragmentType: FragmentType;
+  public readonly seqFragment: SeqFragmentTypeInit;
+  public readonly dbRefs: Types.DbRefInit[];
 
-  public static is(msg: any): Match<WriteRes> {
+  public static is(msg: any): Types.Match<WriteRes> {
     if (msg instanceof WriteRes) {
       // console.log(`Match:FeedDone`, msg);
-      return Match.create<WriteRes>(msg);
+      return Types.Match.create<WriteRes>(msg);
     }
-    return Match.nothing();
+    return Types.Match.nothing();
   }
 
-  constructor(fwso: WriteResObj) {
-    super(fwso.tid);
-    this._id = fwso._id;
-    this.created = fwso.created;
-    this.error = fwso.error;
+  constructor(fwso: WriteResInit) {
+    super(fwso);
+    this.msg = Types.Msg.toObj(fwso.msg);
     this.sha = fwso.sha;
-    this.seq = fwso.seq;
-    this.fragmentType = fwso.fragmentType;
+    this.seqFragment = SeqFragmentType.toObj(fwso.seqFragment);
+    this.dbRefs = fwso.dbRefs.map(i => Types.DbRef.toObj(i));
   }
 
-  public isOk(): boolean {
-    return !this.error;
-  }
-
-  public asObj(): WriteResObj {
+  public asObj(): WriteResInit {
     return {
-      tid: this.tid,
-      _id: this._id,
-      created: this.created,
+      msg: Types.Msg.toObj(this.msg),
+      dbRefs: this.dbRefs,
       sha: this.sha,
-      seq: this.seq,
-      fragmentType: this.fragmentType,
-      error: this.error
+      seqFragment: this.seqFragment,
     };
   }
 

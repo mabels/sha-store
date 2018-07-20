@@ -4,6 +4,7 @@
     "module": "commonjs",
     "outDir": "dist",
     "noImplicitAny": true,
+    "strictNullChecks": true,
     "pretty": true,
     "sourceMap": true,
     "declaration": true,
