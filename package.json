@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@storemate/foundation-store": "file:../foundation-store",
-    "pouchdb": "^7.0.0",
+    "pouchdb": "^7.2.1",
     "pouchdb-find": "^7.0.0",
     "rxjs": "^6.2.2",
     "uuid": "^3.3.0"
