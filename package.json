@@ -32,7 +32,7 @@
   "homepage": "https://github.com/mabels/sha-store#readme",
   "devDependencies": {
     "@types/chai": "4.1.4",
-    "@types/mocha": "5.2.5",
+    "@types/mocha": "7.0.2",
     "@types/node": "^10.5.2",
     "@types/pouchdb": "^6.3.2",
     "@types/uuid": "^3.4.3",
